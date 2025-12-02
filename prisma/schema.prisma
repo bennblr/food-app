@@ -10,6 +10,9 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// Seed script configuration
+// Run with: npm run db:seed
+
 enum UserRole {
   CLIENT
   RESTAURANT_OWNER

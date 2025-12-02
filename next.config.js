@@ -4,9 +4,12 @@ const nextConfig = {
   images: {
     domains: ['localhost'],
   },
-  // Убираем standalone для избежания проблем с экспортом
-  // Для production деплоя можно использовать 'standalone' если нужен Docker
-  // output: 'standalone',
+  // Отключаем статическую генерацию страниц, которые используют API routes
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '2mb',
+    },
+  },
 }
 
 module.exports = nextConfig
