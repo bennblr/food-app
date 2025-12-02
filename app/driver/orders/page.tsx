@@ -10,7 +10,7 @@ import {
   Empty,
 } from "antd";
 import { CheckOutlined } from "@ant-design/icons";
-import axios from "axios";
+import { httpService } from "@/stores";
 
 const statusLabels: Record<string, string> = {
   PENDING: "Ожидает подтверждения",
@@ -34,8 +34,8 @@ export default function DriverOrdersPage() {
   const fetchOrders = async () => {
     setLoading(true);
     try {
-      const response = await axios.get("/api/driver/available-orders");
-      setOrders(response.data);
+      const data = await httpService.get<any[]>("/api/driver/available-orders");
+      setOrders(data);
     } catch (error) {
       message.error("Ошибка загрузки заказов");
     } finally {
@@ -45,7 +45,7 @@ export default function DriverOrdersPage() {
 
   const handleAcceptOrder = async (orderId: number) => {
     try {
-      await axios.post(`/api/driver/orders/${orderId}/accept`);
+      await httpService.post(`/api/driver/orders/${orderId}/accept`);
       message.success("Заказ принят");
       fetchOrders();
     } catch (error: any) {

@@ -13,7 +13,7 @@ import {
   Popconfirm,
 } from "antd";
 import { PlusOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
-import axios from "axios";
+import { httpService } from "@/stores";
 
 export default function AdminRestaurantsPage() {
   const [restaurants, setRestaurants] = useState<any[]>([]);
@@ -29,8 +29,8 @@ export default function AdminRestaurantsPage() {
   const fetchRestaurants = async () => {
     setLoading(true);
     try {
-      const response = await axios.get("/api/restaurants");
-      setRestaurants(response.data);
+      const data = await httpService.get<any[]>("/api/restaurants");
+      setRestaurants(data);
     } catch (error) {
       message.error("Ошибка загрузки ресторанов");
     } finally {
@@ -41,10 +41,10 @@ export default function AdminRestaurantsPage() {
   const handleSubmit = async (values: any) => {
     try {
       if (editingRestaurant) {
-        await axios.put(`/api/admin/restaurants/${editingRestaurant.id}`, values);
+        await httpService.put(`/api/admin/restaurants/${editingRestaurant.id}`, values);
         message.success("Ресторан обновлен");
       } else {
-        await axios.post("/api/admin/restaurants", values);
+        await httpService.post("/api/admin/restaurants", values);
         message.success("Ресторан создан");
       }
       setModalVisible(false);
@@ -58,7 +58,7 @@ export default function AdminRestaurantsPage() {
 
   const handleDelete = async (id: number) => {
     try {
-      await axios.delete(`/api/admin/restaurants/${id}`);
+      await httpService.delete(`/api/admin/restaurants/${id}`);
       message.success("Ресторан удален");
       fetchRestaurants();
     } catch (error) {

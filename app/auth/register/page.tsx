@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Layout, Card, Form, Input, Button, Typography, message } from "antd";
 import { UserOutlined, LockOutlined, MailOutlined, PhoneOutlined } from "@ant-design/icons";
-import axios from "axios";
+import { httpService } from "@/stores";
 import Link from "next/link";
 import styles from "../login/page.module.css";
 
@@ -23,7 +23,7 @@ export default function RegisterPage() {
   }) => {
     setLoading(true);
     try {
-      await axios.post("/api/auth/register", values);
+      await httpService.post("/api/auth/register", values);
       message.success("Регистрация успешна! Войдите в систему");
       router.push("/auth/login");
     } catch (error: any) {

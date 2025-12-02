@@ -7,18 +7,24 @@ import { restaurantStore } from "@/stores";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
+import { observer } from "mobx-react-lite";
+import AppHeader from "@/components/Header";
 import styles from "./page.module.css";
 
-const { Header, Content } = Layout;
+const { Content } = Layout;
 const { Title, Text } = Typography;
 
-export default function HomePage() {
+const HomePage = observer(() => {
   const router = useRouter();
   const [search, setSearch] = useState("");
+  const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
-    restaurantStore.fetchRestaurants();
-  }, []);
+    if (!initialized) {
+      restaurantStore.fetchRestaurants();
+      setInitialized(true);
+    }
+  }, [initialized]);
 
   const handleSearch = () => {
     restaurantStore.setFilters({ search });
@@ -27,11 +33,7 @@ export default function HomePage() {
 
   return (
     <Layout className={styles.layout}>
-      <Header className={styles.header}>
-        <Title level={3} style={{ color: "white", margin: 0 }}>
-          Food App
-        </Title>
-      </Header>
+      <AppHeader />
       <Content className={styles.content}>
         <div className={styles.searchSection}>
           <Input
@@ -90,9 +92,9 @@ export default function HomePage() {
                         title={restaurant.name}
                         description={
                           <div>
-                            <div>⭐ {restaurant.rating.toFixed(1)}</div>
-                            <div>⏱ {restaurant.deliveryTime} мин</div>
-                            <div>💰 Доставка: {restaurant.deliveryFee} ₽</div>
+                            <div>⭐ {typeof restaurant.rating === 'number' ? restaurant.rating.toFixed(1) : '0.0'}</div>
+                            {restaurant.deliveryTime && <div>⏱ {restaurant.deliveryTime} мин</div>}
+                            <div>💰 Доставка: {restaurant.deliveryFee || 0} ₽</div>
                           </div>
                         }
                       />
@@ -106,5 +108,7 @@ export default function HomePage() {
       </Content>
     </Layout>
   );
-}
+});
+
+export default HomePage;
 

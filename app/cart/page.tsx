@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   Layout,
@@ -20,43 +20,51 @@ import {
 } from "@ant-design/icons";
 import { cartStore } from "@/stores";
 import { observer } from "mobx-react-lite";
+import AppHeader from "@/components/Header";
 import styles from "./page.module.css";
 
-const { Header, Content } = Layout;
+const { Content } = Layout;
 const { Title, Text } = Typography;
 
 const CartPage = observer(() => {
   const router = useRouter();
+  const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
-    cartStore.fetchCart();
-  }, []);
+    if (!initialized) {
+      cartStore.fetchCart();
+      setInitialized(true);
+    }
+  }, [initialized]);
 
   const handleCheckout = () => {
     router.push("/checkout");
   };
 
   if (cartStore.isLoading) {
-    return <Spin size="large" style={{ display: "block", margin: "50px auto" }} />;
+    return (
+      <Layout className={styles.layout}>
+        <AppHeader />
+        <Content className={styles.content}>
+          <div style={{ padding: "24px", maxWidth: "1200px", margin: "0 auto" }}>
+            <Spin size="large" style={{ display: "block", margin: "50px auto" }} />
+          </div>
+        </Content>
+      </Layout>
+    );
   }
 
   if (cartStore.items.length === 0) {
     return (
       <Layout className={styles.layout}>
-        <Header className={styles.header}>
-          <Button
-            icon={<ArrowLeftOutlined />}
-            onClick={() => router.back()}
-            style={{ marginRight: 16 }}
-          >
-            Назад
-          </Button>
-          <Title level={4} style={{ color: "white", margin: 0 }}>
-            Корзина
-          </Title>
-        </Header>
+        <AppHeader />
         <Content className={styles.content}>
-          <Empty description="Корзина пуста" />
+          <div style={{ padding: "24px", maxWidth: "1200px", margin: "0 auto" }}>
+            <Title level={2} style={{ marginBottom: 24 }}>
+              <ShoppingCartOutlined /> Корзина
+            </Title>
+            <Empty description="Корзина пуста" />
+          </div>
         </Content>
       </Layout>
     );
@@ -64,19 +72,12 @@ const CartPage = observer(() => {
 
   return (
     <Layout className={styles.layout}>
-      <Header className={styles.header}>
-        <Button
-          icon={<ArrowLeftOutlined />}
-          onClick={() => router.back()}
-          style={{ marginRight: 16 }}
-        >
-          Назад
-        </Button>
-        <Title level={4} style={{ color: "white", margin: 0 }}>
-          Корзина
-        </Title>
-      </Header>
+      <AppHeader />
       <Content className={styles.content}>
+        <div style={{ padding: "24px", maxWidth: "1200px", margin: "0 auto" }}>
+          <Title level={2} style={{ marginBottom: 24 }}>
+            <ShoppingCartOutlined /> Корзина
+          </Title>
         <Card>
           <Space direction="vertical" size="large" style={{ width: "100%" }}>
             {cartStore.items.map((item) => (
@@ -126,6 +127,7 @@ const CartPage = observer(() => {
             Оформить заказ
           </Button>
         </Card>
+        </div>
       </Content>
     </Layout>
   );

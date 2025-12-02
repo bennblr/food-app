@@ -14,12 +14,12 @@ import {
   Spin,
 } from "antd";
 import { ArrowLeftOutlined } from "@ant-design/icons";
-import axios from "axios";
-import { cartStore } from "@/stores";
+import { cartStore, httpService } from "@/stores";
 import { observer } from "mobx-react-lite";
+import AppHeader from "@/components/Header";
 import styles from "./page.module.css";
 
-const { Header, Content } = Layout;
+const { Content } = Layout;
 const { Title, Text } = Typography;
 
 const CheckoutPage = observer(() => {
@@ -28,22 +28,23 @@ const CheckoutPage = observer(() => {
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
 
-  useEffect(() => {
-    fetchAddresses();
-  }, []);
-
   const fetchAddresses = async () => {
     try {
-      const response = await axios.get("/api/addresses");
-      setAddresses(response.data);
-      if (response.data.length > 0) {
-        const primary = response.data.find((a: any) => a.isPrimary) || response.data[0];
+      const data = await httpService.get<any[]>("/api/addresses");
+      setAddresses(data);
+      if (data.length > 0) {
+        const primary = data.find((a: any) => a.isPrimary) || data[0];
         form.setFieldsValue({ addressId: primary.id });
       }
     } catch (error) {
       message.error("Ошибка загрузки адресов");
     }
   };
+
+  useEffect(() => {
+    fetchAddresses();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const onFinish = async (values: any) => {
     if (cartStore.items.length === 0) {
@@ -53,7 +54,7 @@ const CheckoutPage = observer(() => {
 
     setLoading(true);
     try {
-      const response = await axios.post("/api/orders", {
+      const data = await httpService.post<any>("/api/orders", {
         addressId: values.addressId,
         paymentMethod: values.paymentMethod,
         notes: values.notes,
@@ -61,7 +62,7 @@ const CheckoutPage = observer(() => {
       });
       message.success("Заказ оформлен!");
       cartStore.clearCart();
-      router.push(`/orders/${response.data.id}`);
+      router.push(`/orders/${data.id}`);
     } catch (error: any) {
       message.error(error.response?.data?.message || "Ошибка оформления заказа");
     } finally {
@@ -72,22 +73,13 @@ const CheckoutPage = observer(() => {
   if (cartStore.items.length === 0) {
     return (
       <Layout className={styles.layout}>
-        <Header className={styles.header}>
-          <Button
-            icon={<ArrowLeftOutlined />}
-            onClick={() => router.back()}
-            style={{ marginRight: 16 }}
-          >
-            Назад
-          </Button>
-          <Title level={4} style={{ color: "white", margin: 0 }}>
-            Оформление заказа
-          </Title>
-        </Header>
+        <AppHeader />
         <Content className={styles.content}>
+          <div style={{ padding: "24px", maxWidth: "1200px", margin: "0 auto" }}>
           <Card>
             <Text>Корзина пуста</Text>
           </Card>
+          </div>
         </Content>
       </Layout>
     );
@@ -95,19 +87,12 @@ const CheckoutPage = observer(() => {
 
   return (
     <Layout className={styles.layout}>
-      <Header className={styles.header}>
-        <Button
-          icon={<ArrowLeftOutlined />}
-          onClick={() => router.back()}
-          style={{ marginRight: 16 }}
-        >
-          Назад
-        </Button>
-        <Title level={4} style={{ color: "white", margin: 0 }}>
-          Оформление заказа
-        </Title>
-      </Header>
+      <AppHeader />
       <Content className={styles.content}>
+        <div style={{ padding: "24px", maxWidth: "1200px", margin: "0 auto" }}>
+          <Title level={2} style={{ marginBottom: 24 }}>
+            Оформление заказа
+          </Title>
         <Card>
           <div style={{ marginBottom: 24 }}>
             <Title level={5}>Итого: {cartStore.totalPrice.toFixed(2)} ₽</Title>
@@ -163,6 +148,7 @@ const CheckoutPage = observer(() => {
             </Form.Item>
           </Form>
         </Card>
+        </div>
       </Content>
     </Layout>
   );

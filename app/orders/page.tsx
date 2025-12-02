@@ -17,7 +17,7 @@ import {
   CheckCircleOutlined,
   ClockCircleOutlined,
 } from "@ant-design/icons";
-import axios from "axios";
+import { httpService } from "@/stores";
 import styles from "./page.module.css";
 
 const { Header, Content } = Layout;
@@ -56,8 +56,8 @@ export default function OrdersPage() {
 
   const fetchOrders = async () => {
     try {
-      const response = await axios.get("/api/orders");
-      setOrders(response.data);
+      const data = await httpService.get<any[]>("/api/orders");
+      setOrders(data);
     } catch (error) {
       console.error("Ошибка загрузки заказов:", error);
     } finally {
@@ -127,7 +127,7 @@ export default function OrdersPage() {
                     danger
                     onClick={async () => {
                       try {
-                        await axios.post(`/api/orders/${order.id}/cancel`);
+                        await httpService.post(`/api/orders/${order.id}/cancel`);
                         fetchOrders();
                       } catch (error) {
                         console.error("Ошибка отмены заказа:", error);

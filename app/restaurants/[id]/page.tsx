@@ -20,11 +20,11 @@ import {
   ShoppingCartOutlined,
   StarOutlined,
 } from "@ant-design/icons";
-import { restaurantStore, cartStore } from "@/stores";
-import axios from "axios";
+import { restaurantStore, cartStore, httpService } from "@/stores";
+import AppHeader from "@/components/Header";
 import styles from "./page.module.css";
 
-const { Header, Content } = Layout;
+const { Content } = Layout;
 const { Title, Text, Paragraph } = Typography;
 
 export default function RestaurantPage() {
@@ -37,8 +37,8 @@ export default function RestaurantPage() {
   useEffect(() => {
     const fetchData = async () => {
       await restaurantStore.fetchRestaurant(Number(params.id));
-      const response = await axios.get(`/api/restaurants/${params.id}/menu`);
-      setMenu(response.data);
+      const data = await httpService.get<any[]>(`/api/restaurants/${params.id}/menu`);
+      setMenu(data);
       setLoading(false);
     };
     fetchData();
@@ -71,18 +71,7 @@ export default function RestaurantPage() {
 
   return (
     <Layout className={styles.layout}>
-      <Header className={styles.header}>
-        <Button
-          icon={<ArrowLeftOutlined />}
-          onClick={() => router.back()}
-          style={{ marginRight: 16 }}
-        >
-          Назад
-        </Button>
-        <Title level={4} style={{ color: "white", margin: 0 }}>
-          {restaurant.name}
-        </Title>
-      </Header>
+      <AppHeader />
       <Content className={styles.content}>
         <Card>
           <Row gutter={16}>
@@ -102,11 +91,11 @@ export default function RestaurantPage() {
               <Paragraph>{restaurant.description}</Paragraph>
               <div className={styles.info}>
                 <div>
-                  <StarOutlined /> Рейтинг: {restaurant.rating.toFixed(1)} (
-                  {restaurant.totalReviews} отзывов)
+                  <StarOutlined /> Рейтинг: {typeof restaurant.rating === 'number' ? restaurant.rating.toFixed(1) : '0.0'} (
+                  {restaurant.totalReviews || 0} отзывов)
                 </div>
-                <div>⏱ Время доставки: {restaurant.deliveryTime} мин</div>
-                <div>💰 Стоимость доставки: {restaurant.deliveryFee} ₽</div>
+                {restaurant.deliveryTime && <div>⏱ Время доставки: {restaurant.deliveryTime} мин</div>}
+                <div>💰 Стоимость доставки: {restaurant.deliveryFee || 0} ₽</div>
                 <div>📍 {restaurant.address}</div>
                 {restaurant.phone && <div>📞 {restaurant.phone}</div>}
               </div>

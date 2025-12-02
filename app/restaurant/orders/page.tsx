@@ -9,7 +9,7 @@ import {
   Select,
   message,
 } from "antd";
-import axios from "axios";
+import { httpService } from "@/stores";
 
 const statusLabels: Record<string, string> = {
   PENDING: "Ожидает подтверждения",
@@ -42,8 +42,8 @@ export default function RestaurantOrdersPage() {
   const fetchOrders = async () => {
     setLoading(true);
     try {
-      const response = await axios.get("/api/restaurant/orders");
-      setOrders(response.data);
+      const data = await httpService.get<any[]>("/api/restaurant/orders");
+      setOrders(data);
     } catch (error) {
       message.error("Ошибка загрузки заказов");
     } finally {
@@ -53,7 +53,7 @@ export default function RestaurantOrdersPage() {
 
   const handleStatusChange = async (orderId: number, status: string) => {
     try {
-      await axios.put(`/api/restaurant/orders/${orderId}/status`, { status });
+      await httpService.put(`/api/restaurant/orders/${orderId}/status`, { status });
       message.success("Статус обновлен");
       fetchOrders();
     } catch (error) {
