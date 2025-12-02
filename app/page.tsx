@@ -1,13 +1,12 @@
 "use client";
 
-export const dynamic = 'force-dynamic';
-
 import { useEffect, useState } from "react";
 import { Layout, Row, Col, Card, Typography, Spin, Input, Button } from "antd";
 import { SearchOutlined, FireOutlined } from "@ant-design/icons";
 import { restaurantStore } from "@/stores";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import styles from "./page.module.css";
 
 const { Header, Content } = Layout;
@@ -65,10 +64,12 @@ export default function HomePage() {
                       hoverable
                       cover={
                         restaurant.coverUrl ? (
-                          <img
+                          <Image
                             alt={restaurant.name}
                             src={restaurant.coverUrl}
-                            style={{ height: 200, objectFit: "cover" }}
+                            width={400}
+                            height={200}
+                            style={{ objectFit: "cover" }}
                           />
                         ) : (
                           <div

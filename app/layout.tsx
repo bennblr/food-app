@@ -13,6 +13,10 @@ export const metadata: Metadata = {
   description: "Заказ еды из ресторанов с доставкой",
 };
 
+// Отключаем статическую генерацию для всего приложения
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export default function RootLayout({
   children,
 }: {

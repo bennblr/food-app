@@ -1,7 +1,5 @@
 "use client";
 
-export const dynamic = 'force-dynamic';
-
 import { Layout, Menu, Typography, Button } from "antd";
 import {
   ShopOutlined,

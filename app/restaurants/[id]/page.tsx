@@ -1,7 +1,5 @@
 "use client";
 
-export const dynamic = 'force-dynamic';
-
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
@@ -14,8 +12,9 @@ import {
   Spin,
   Tabs,
   Rate,
-  Image,
+  Image as AntImage,
 } from "antd";
+import Image from "next/image";
 import {
   ArrowLeftOutlined,
   ShoppingCartOutlined,
@@ -92,7 +91,9 @@ export default function RestaurantPage() {
                 <Image
                   src={restaurant.coverUrl}
                   alt={restaurant.name}
-                  style={{ width: "100%", borderRadius: 8 }}
+                  width={400}
+                  height={300}
+                  style={{ width: "100%", borderRadius: 8, objectFit: "cover" }}
                 />
               )}
             </Col>
@@ -129,10 +130,12 @@ export default function RestaurantPage() {
                 hoverable
                 cover={
                   dish.imageUrl && dish.imageUrl.length > 0 ? (
-                    <img
+                    <Image
                       alt={dish.name}
                       src={dish.imageUrl[0]}
-                      style={{ height: 200, objectFit: "cover" }}
+                      width={400}
+                      height={200}
+                      style={{ objectFit: "cover" }}
                     />
                   ) : null
                 }
