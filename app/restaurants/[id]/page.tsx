@@ -136,6 +136,7 @@ export default function RestaurantPage() {
                 }
                 actions={[
                   <Button
+                    key="add-to-cart"
                     type="primary"
                     icon={<ShoppingCartOutlined />}
                     onClick={() => handleAddToCart(dish)}
