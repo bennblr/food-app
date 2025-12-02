@@ -1,0 +1,26 @@
+.layout {
+  min-height: 100vh;
+}
+
+.header {
+  background: #1890ff;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+}
+
+.content {
+  padding: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.info {
+  margin-top: 16px;
+}
+
+.info > div {
+  margin-bottom: 8px;
+}
+
