@@ -27,6 +27,7 @@ import {
   PlusOutlined,
   EditOutlined,
   DeleteOutlined,
+  UserOutlined,
 } from "@ant-design/icons";
 import { httpService } from "@/stores";
 import Image from "next/image";
@@ -155,6 +156,16 @@ export default function AdminRestaurantManagementPage() {
                 </span>
               ),
               children: <RestaurantCategoriesTab restaurantId={selectedRestaurantId} />,
+            },
+            {
+              key: "employees",
+              label: (
+                <span>
+                  <UserOutlined />
+                  Сотрудники
+                </span>
+              ),
+              children: <RestaurantEmployeesTab restaurantId={selectedRestaurantId} />,
             },
           ]}
         />
@@ -848,6 +859,216 @@ function RestaurantCategoriesTab({ restaurantId }: { restaurantId: number }) {
           <Form.Item name="isActive" label="Активна" valuePropName="checked" initialValue={true}>
             <Switch />
           </Form.Item>
+          <Form.Item>
+            <Space>
+              <Button type="primary" htmlType="submit">
+                Сохранить
+              </Button>
+              <Button onClick={() => setModalVisible(false)}>Отмена</Button>
+            </Space>
+          </Form.Item>
+        </Form>
+      </Modal>
+    </div>
+  );
+}
+
+// Компонент для таба "Сотрудники"
+function RestaurantEmployeesTab({ restaurantId }: { restaurantId: number }) {
+  const [employees, setEmployees] = useState<any[]>([]);
+  const [users, setUsers] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [editingEmployee, setEditingEmployee] = useState<any>(null);
+  const [form] = Form.useForm();
+
+  useEffect(() => {
+    fetchEmployees();
+    fetchUsers();
+  }, [restaurantId]);
+
+  const fetchEmployees = async () => {
+    setLoading(true);
+    try {
+      const data = await httpService.get<any[]>(`/api/admin/restaurants/${restaurantId}/employees`);
+      setEmployees(data);
+    } catch (error) {
+      message.error("Ошибка загрузки сотрудников");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchUsers = async () => {
+    try {
+      const data = await httpService.get<any[]>("/api/admin/users");
+      setUsers(data);
+    } catch (error) {
+      message.error("Ошибка загрузки пользователей");
+    }
+  };
+
+  const handleSubmit = async (values: any) => {
+    try {
+      if (editingEmployee) {
+        await httpService.put(
+          `/api/admin/restaurants/${restaurantId}/employees/${editingEmployee.id}`,
+          values
+        );
+        message.success("Сотрудник обновлен");
+      } else {
+        await httpService.post(`/api/admin/restaurants/${restaurantId}/employees`, values);
+        message.success("Сотрудник добавлен");
+      }
+      setModalVisible(false);
+      form.resetFields();
+      setEditingEmployee(null);
+      fetchEmployees();
+    } catch (error: any) {
+      message.error(error.response?.data?.message || "Ошибка сохранения");
+    }
+  };
+
+  const handleDelete = async (id: number) => {
+    try {
+      await httpService.delete(`/api/admin/restaurants/${restaurantId}/employees/${id}`);
+      message.success("Сотрудник удален");
+      fetchEmployees();
+    } catch (error) {
+      message.error("Ошибка удаления");
+    }
+  };
+
+  const roleLabels: Record<string, string> = {
+    MANAGER: "Менеджер",
+    CHEF: "Повар",
+    WAITER: "Официант",
+    COURIER: "Курьер",
+  };
+
+  const columns = [
+    {
+      title: "Пользователь",
+      key: "user",
+      render: (_: any, record: any) =>
+        `${record.user?.name || record.user?.email} (${record.user?.email})`,
+    },
+    {
+      title: "Роль",
+      dataIndex: "role",
+      key: "role",
+      render: (role: string) => roleLabels[role] || role,
+    },
+    {
+      title: "Статус",
+      dataIndex: "isActive",
+      key: "isActive",
+      render: (isActive: boolean) => (isActive ? "Активен" : "Неактивен"),
+    },
+    {
+      title: "Действия",
+      key: "actions",
+      render: (_: any, record: any) => (
+        <Space>
+          <Button
+            icon={<EditOutlined />}
+            onClick={() => {
+              setEditingEmployee(record);
+              form.setFieldsValue({
+                userId: record.userId,
+                role: record.role,
+                isActive: record.isActive,
+              });
+              setModalVisible(true);
+            }}
+          />
+          <Popconfirm
+            title="Удалить сотрудника?"
+            onConfirm={() => handleDelete(record.id)}
+          >
+            <Button danger icon={<DeleteOutlined />} />
+          </Popconfirm>
+        </Space>
+      ),
+    },
+  ];
+
+  // Фильтруем пользователей, которые уже являются сотрудниками
+  const availableUsers = users.filter(
+    (user) => !employees.some((emp) => emp.userId === user.id)
+  );
+
+  return (
+    <div>
+      <div style={{ marginBottom: 16, display: "flex", justifyContent: "space-between" }}>
+        <h3>Сотрудники ресторана</h3>
+        <Button
+          type="primary"
+          icon={<PlusOutlined />}
+          onClick={() => {
+            setEditingEmployee(null);
+            form.resetFields();
+            setModalVisible(true);
+          }}
+        >
+          Добавить сотрудника
+        </Button>
+      </div>
+
+      <Table
+        columns={columns}
+        dataSource={employees}
+        loading={loading}
+        rowKey="id"
+      />
+
+      <Modal
+        title={editingEmployee ? "Редактировать сотрудника" : "Добавить сотрудника"}
+        open={modalVisible}
+        onCancel={() => {
+          setModalVisible(false);
+          form.resetFields();
+          setEditingEmployee(null);
+        }}
+        footer={null}
+      >
+        <Form form={form} onFinish={handleSubmit} layout="vertical">
+          <Form.Item
+            name="userId"
+            label="Пользователь"
+            rules={[{ required: true, message: "Выберите пользователя" }]}
+          >
+            <Select
+              placeholder="Выберите пользователя"
+              disabled={!!editingEmployee}
+              showSearch
+              optionFilterProp="children"
+              filterOption={(input, option) =>
+                (option?.label ?? "").toLowerCase().includes(input.toLowerCase())
+              }
+              options={availableUsers.map((user) => ({
+                value: user.id,
+                label: `${user.name || user.email} (${user.email})`,
+              }))}
+            />
+          </Form.Item>
+          <Form.Item
+            name="role"
+            label="Роль"
+            rules={[{ required: true, message: "Выберите роль" }]}
+          >
+            <Select>
+              <Select.Option value="MANAGER">Менеджер</Select.Option>
+              <Select.Option value="CHEF">Повар</Select.Option>
+              <Select.Option value="WAITER">Официант</Select.Option>
+              <Select.Option value="COURIER">Курьер</Select.Option>
+            </Select>
+          </Form.Item>
+          {editingEmployee && (
+            <Form.Item name="isActive" label="Активен" valuePropName="checked">
+              <Switch />
+            </Form.Item>
+          )}
           <Form.Item>
             <Space>
               <Button type="primary" htmlType="submit">

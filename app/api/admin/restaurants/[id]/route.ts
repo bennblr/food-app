@@ -22,6 +22,7 @@ const restaurantSchema = z.object({
   deliveryTime: z.number().nullable().optional(),
   minOrderAmount: z.number().nullable().optional(),
   isActive: z.boolean().optional(),
+  ownerId: z.number().min(1, { message: "Необходимо выбрать владельца ресторана" }).optional(),
 });
 
 export async function PUT(
@@ -52,8 +53,22 @@ export async function PUT(
     const body = await request.json();
     const validatedData = restaurantSchema.parse(body);
 
+    // Если указан ownerId, проверяем, что пользователь существует
+    if (validatedData.ownerId !== undefined) {
+      const owner = await prisma.user.findUnique({
+        where: { id: validatedData.ownerId },
+      });
+
+      if (!owner) {
+        return NextResponse.json(
+          { message: "Пользователь не найден" },
+          { status: 404 }
+        );
+      }
+    }
+
     // Преобразуем пустые строки в null для URL полей
-    const updateData: any = {};
+    const updateData: Record<string, unknown> = {};
     if (validatedData.name !== undefined) updateData.name = validatedData.name;
     if (validatedData.description !== undefined) updateData.description = validatedData.description;
     if (validatedData.address !== undefined) updateData.address = validatedData.address;
@@ -63,6 +78,7 @@ export async function PUT(
     if (validatedData.deliveryTime !== undefined) updateData.deliveryTime = validatedData.deliveryTime;
     if (validatedData.minOrderAmount !== undefined) updateData.minOrderAmount = validatedData.minOrderAmount;
     if (validatedData.isActive !== undefined) updateData.isActive = validatedData.isActive;
+    if (validatedData.ownerId !== undefined) updateData.ownerId = validatedData.ownerId;
     
     if ('logoUrl' in validatedData) {
       updateData.logoUrl = validatedData.logoUrl && validatedData.logoUrl.trim() !== '' ? validatedData.logoUrl : null;
@@ -85,8 +101,9 @@ export async function PUT(
       );
     }
 
+    const message = error instanceof Error ? error.message : "Ошибка обновления ресторана";
     return NextResponse.json(
-      { message: error.message || "Ошибка обновления ресторана" },
+      { message },
       { status: 500 }
     );
   }

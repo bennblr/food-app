@@ -21,7 +21,7 @@ const restaurantSchema = z.object({
   deliveryFee: z.number().default(0),
   deliveryTime: z.number().nullable().optional(),
   minOrderAmount: z.number().nullable().optional(),
-  ownerId: z.number().nullable().optional(),
+  ownerId: z.number().min(1, { message: "Необходимо выбрать владельца ресторана" }),
 });
 
 export async function GET() {
@@ -61,8 +61,9 @@ export async function GET() {
 
     return NextResponse.json(restaurants);
   } catch (error: any) {
+    const message = error instanceof Error ? error.message : "Ошибка загрузки ресторанов";
     return NextResponse.json(
-      { message: error.message || "Ошибка загрузки ресторанов" },
+      { message },
       { status: 500 }
     );
   }
@@ -93,6 +94,18 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const validatedData = restaurantSchema.parse(body);
 
+    // Проверяем, что пользователь с указанным ownerId существует
+    const owner = await prisma.user.findUnique({
+      where: { id: validatedData.ownerId },
+    });
+
+    if (!owner) {
+      return NextResponse.json(
+        { message: "Пользователь не найден" },
+        { status: 404 }
+      );
+    }
+
     // Преобразуем пустые строки в null для URL полей
     const createData = {
       ...validatedData,
@@ -113,8 +126,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const message = error instanceof Error ? error.message : "Ошибка создания ресторана";
     return NextResponse.json(
-      { message: error.message || "Ошибка создания ресторана" },
+      { message },
       { status: 500 }
     );
   }

@@ -11,6 +11,7 @@ import {
   InputNumber,
   message,
   Popconfirm,
+  Select,
 } from "antd";
 import { PlusOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import { httpService } from "@/stores";
@@ -21,10 +22,22 @@ export default function AdminRestaurantsPage() {
   const [modalVisible, setModalVisible] = useState(false);
   const [editingRestaurant, setEditingRestaurant] = useState<any>(null);
   const [form] = Form.useForm();
+  const [restaurantOwners, setRestaurantOwners] = useState<Array<{ id: number; name: string; email: string }>>([]);
 
   useEffect(() => {
     fetchRestaurants();
+    fetchRestaurantOwners();
   }, []);
+
+  const fetchRestaurantOwners = async () => {
+    try {
+      // Загружаем всех пользователей - владельцем ресторана может быть любой пользователь
+      const users = await httpService.get<any[]>("/api/admin/users");
+      setRestaurantOwners(users);
+    } catch (error) {
+      message.error("Ошибка загрузки пользователей");
+    }
+  };
 
   const fetchRestaurants = async () => {
     setLoading(true);
@@ -46,6 +59,7 @@ export default function AdminRestaurantsPage() {
         deliveryFee: values.deliveryFee ? Number(values.deliveryFee) : 0,
         deliveryTime: values.deliveryTime ? Number(values.deliveryTime) : null,
         minOrderAmount: values.minOrderAmount ? Number(values.minOrderAmount) : null,
+        ownerId: values.ownerId ? Number(values.ownerId) : undefined,
       };
 
       if (editingRestaurant) {
@@ -114,6 +128,12 @@ export default function AdminRestaurantsPage() {
       key: "rating",
     },
     {
+      title: "Владелец",
+      key: "owner",
+      render: (_: any, record: any) => 
+        record.owner ? `${record.owner.name || record.owner.email}` : "Не указан",
+    },
+    {
       title: "Действия",
       key: "actions",
       render: (_: any, record: any) => (
@@ -127,6 +147,7 @@ export default function AdminRestaurantsPage() {
                 deliveryFee: record.deliveryFee ? Number(record.deliveryFee) : 0,
                 deliveryTime: record.deliveryTime ? Number(record.deliveryTime) : undefined,
                 minOrderAmount: record.minOrderAmount ? Number(record.minOrderAmount) : undefined,
+                ownerId: record.ownerId || record.owner?.id,
               });
               setModalVisible(true);
             }}
@@ -214,6 +235,24 @@ export default function AdminRestaurantsPage() {
           </Form.Item>
           <Form.Item name="minOrderAmount" label="Минимальная сумма заказа">
             <InputNumber min={0} style={{ width: "100%" }} />
+          </Form.Item>
+          <Form.Item 
+            name="ownerId" 
+            label="Владелец ресторана" 
+            rules={[{ required: true, message: "Необходимо выбрать владельца ресторана" }]}
+          >
+            <Select
+              placeholder="Выберите владельца ресторана"
+              showSearch
+              optionFilterProp="children"
+              filterOption={(input, option) =>
+                (option?.label ?? "").toLowerCase().includes(input.toLowerCase())
+              }
+              options={restaurantOwners.map((owner) => ({
+                value: owner.id,
+                label: `${owner.name || owner.email} (${owner.email})`,
+              }))}
+            />
           </Form.Item>
           <Form.Item>
             <Space>
