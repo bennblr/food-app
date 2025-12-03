@@ -146,30 +146,33 @@ const AppHeader = observer(() => {
           </div>
         </Link>
         <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-          <Select
-            value={mounted ? (cityStore.selectedCityId || undefined) : undefined}
-            onChange={(cityId) => {
-              // Очищаем корзину при смене города, так как ресторан может не работать в новом городе
-              cartStore.clearCart();
-              cityStore.setCity(cityId);
-              // Инвалидируем кэш React Query для обновления данных
-              queryClient.invalidateQueries();
-            }}
-            placeholder="Выберите город"
-            style={{ width: 150 }}
-            suffixIcon={<EnvironmentOutlined style={{ color: "white" }} />}
-            styles={{ popup: { root: { color: "#000" } } }}
-            onClick={() => {
-              if (cityStore.cities.length === 0) {
-                cityStore.fetchCities();
-              }
-            }}
-            options={cityStore.cities.map(city => ({
-              value: city.id,
-              label: city.name,
-            }))}
-            suppressHydrationWarning
-          />
+          {mounted ? (
+            <Select
+              value={cityStore.selectedCityId || undefined}
+              onChange={(cityId) => {
+                // Очищаем корзину при смене города, так как ресторан может не работать в новом городе
+                cartStore.clearCart();
+                cityStore.setCity(cityId);
+                // Инвалидируем кэш React Query для обновления данных
+                queryClient.invalidateQueries();
+              }}
+              placeholder="Выберите город"
+              style={{ width: 150 }}
+              suffixIcon={<EnvironmentOutlined style={{ color: "white" }} />}
+              styles={{ popup: { root: { color: "#000" } } }}
+              onClick={() => {
+                if (cityStore.cities.length === 0) {
+                  cityStore.fetchCities();
+                }
+              }}
+              options={cityStore.cities.map(city => ({
+                value: city.id,
+                label: city.name,
+              }))}
+            />
+          ) : (
+            <div style={{ width: 150, height: 32 }} />
+          )}
           <Menu
             theme="dark"
             mode="horizontal"
