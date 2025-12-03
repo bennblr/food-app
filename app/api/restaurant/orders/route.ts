@@ -33,22 +33,31 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Получаем ID ресторанов, которыми управляет пользователь
-    const restaurantIds = [
-      ...user.ownedRestaurants.map((r) => r.id),
-      ...user.restaurantEmployees.map((e) => e.restaurantId),
-    ];
-
-    if (restaurantIds.length === 0) {
-      return NextResponse.json([]);
-    }
-
     const searchParams = request.nextUrl.searchParams;
     const status = searchParams.get("status");
+    const restaurantId = searchParams.get("restaurantId");
 
-    const where: any = {
-      restaurantId: { in: restaurantIds },
-    };
+    // Админы приложения видят все заказы всех ресторанов
+    const isAppAdmin = ["APP_OWNER", "APP_EDITOR"].includes(user.role);
+    
+    const where: any = {};
+    
+    if (!isAppAdmin) {
+      // Получаем ID ресторанов, которыми управляет пользователь
+      const restaurantIds = [
+        ...user.ownedRestaurants.map((r) => r.id),
+        ...user.restaurantEmployees.map((e) => e.restaurantId),
+      ];
+
+      if (restaurantIds.length === 0) {
+        return NextResponse.json([]);
+      }
+
+      where.restaurantId = { in: restaurantIds };
+    } else if (restaurantId) {
+      // Для админов: фильтр по конкретному ресторану
+      where.restaurantId = parseInt(restaurantId);
+    }
 
     if (status) {
       where.status = status;
@@ -62,6 +71,13 @@ export async function GET(request: NextRequest) {
             id: true,
             name: true,
             phone: true,
+          },
+        },
+        restaurant: {
+          select: {
+            id: true,
+            name: true,
+            address: true,
           },
         },
         address: true,
@@ -88,4 +104,5 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
 

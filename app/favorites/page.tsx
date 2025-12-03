@@ -52,7 +52,7 @@ export default function FavoritesPage() {
             <Row gutter={[16, 16]}>
               {favorites.map((favorite) => (
                 <Col xs={24} sm={12} md={8} lg={6} key={favorite.id}>
-                  <Link href={`/restaurants/${favorite.dish?.restaurantId}`}>
+                  <Link href={`/restaurants/${favorite.dish?.restaurantId}`} prefetch={true}>
                     <Card
                       hoverable
                       cover={
@@ -101,4 +101,5 @@ export default function FavoritesPage() {
     </Layout>
   );
 }
+
 

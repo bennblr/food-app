@@ -8,6 +8,8 @@ import {
   Tag,
   message,
   Empty,
+  Alert,
+  Select,
 } from "antd";
 import { CheckOutlined } from "@ant-design/icons";
 import { httpService } from "@/stores";
@@ -21,20 +23,37 @@ const statusLabels: Record<string, string> = {
   DELIVERED: "Доставлен",
 };
 
-export default function DriverOrdersPage() {
+export default function AdminDriverOrdersPage() {
   const [orders, setOrders] = useState<any[]>([]);
+  const [drivers, setDrivers] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [selectedDriverId, setSelectedDriverId] = useState<number | null>(null);
 
   useEffect(() => {
+    fetchDrivers();
     fetchOrders();
     const interval = setInterval(fetchOrders, 30000); // Обновление каждые 30 секунд
     return () => clearInterval(interval);
-  }, []);
+  }, [selectedDriverId]);
+
+  const fetchDrivers = async () => {
+    try {
+      const users = await httpService.get<any[]>("/api/admin/users");
+      const driverUsers = users.filter((u) => u.role === "DRIVER");
+      setDrivers(driverUsers);
+    } catch (error) {
+      message.error("Ошибка загрузки водителей");
+    }
+  };
 
   const fetchOrders = async () => {
     setLoading(true);
     try {
-      const data = await httpService.get<any[]>("/api/driver/available-orders");
+      let url = "/api/driver/available-orders";
+      if (selectedDriverId) {
+        url += `?driverId=${selectedDriverId}`;
+      }
+      const data = await httpService.get<any[]>(url);
       setOrders(data);
     } catch (error) {
       message.error("Ошибка загрузки заказов");
@@ -43,19 +62,31 @@ export default function DriverOrdersPage() {
     }
   };
 
-  const handleAcceptOrder = async (orderId: number) => {
-    try {
-      await httpService.post(`/api/driver/orders/${orderId}/accept`);
-      message.success("Заказ принят");
-      fetchOrders();
-    } catch (error: any) {
-      message.error(error.response?.data?.message || "Ошибка принятия заказа");
-    }
-  };
-
   return (
-    <div style={{ padding: 24 }}>
+    <div>
       <h1>Доступные заказы</h1>
+      <Alert
+        message="Режим администратора"
+        description="Вы просматриваете все доступные заказы для водителей. Принятие заказов доступно только водителям."
+        type="info"
+        showIcon
+        style={{ marginBottom: 16 }}
+      />
+      <div style={{ marginBottom: 16 }}>
+        <Select
+          placeholder="Фильтр по водителю"
+          allowClear
+          style={{ width: 300 }}
+          value={selectedDriverId}
+          onChange={(value) => setSelectedDriverId(value)}
+        >
+          {drivers.map((driver) => (
+            <Select.Option key={driver.id} value={driver.id}>
+              {driver.name || driver.email}
+            </Select.Option>
+          ))}
+        </Select>
+      </div>
       {orders.length === 0 ? (
         <Empty description="Нет доступных заказов" />
       ) : (
@@ -79,6 +110,11 @@ export default function DriverOrdersPage() {
                 <div>
                   <strong>Сумма:</strong> {order.finalAmount} ₽
                 </div>
+                {order.driver && (
+                  <div>
+                    <strong>Водитель:</strong> {order.driver?.name || order.driver?.email || "Неизвестно"}
+                  </div>
+                )}
               </div>
               <div style={{ marginBottom: 16 }}>
                 <strong>Блюда:</strong>
@@ -90,13 +126,8 @@ export default function DriverOrdersPage() {
                   ))}
                 </ul>
               </div>
-              <Button
-                type="primary"
-                icon={<CheckOutlined />}
-                onClick={() => handleAcceptOrder(order.id)}
-                block
-              >
-                Принять заказ
+              <Button disabled block>
+                Только для водителей
               </Button>
             </Card>
           ))}

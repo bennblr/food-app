@@ -40,15 +40,24 @@ export async function PUT(
             name: true,
             price: true,
             imageUrl: true,
+            weight: true,
+          },
+        },
+        restaurant: {
+          select: {
+            id: true,
+            name: true,
           },
         },
       },
+      orderBy: { createdAt: "desc" },
     });
 
     return NextResponse.json(cartItems);
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Ошибка обновления корзины";
     return NextResponse.json(
-      { message: error.message || "Ошибка обновления корзины" },
+      { message },
       { status: 500 }
     );
   }
@@ -81,15 +90,24 @@ export async function DELETE(
             name: true,
             price: true,
             imageUrl: true,
+            weight: true,
+          },
+        },
+        restaurant: {
+          select: {
+            id: true,
+            name: true,
           },
         },
       },
+      orderBy: { createdAt: "desc" },
     });
 
     return NextResponse.json(cartItems);
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Ошибка удаления из корзины";
     return NextResponse.json(
-      { message: error.message || "Ошибка удаления из корзины" },
+      { message },
       { status: 500 }
     );
   }

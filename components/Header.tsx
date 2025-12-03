@@ -66,7 +66,7 @@ const AppHeader = observer(() => {
     {
       key: "home",
       icon: <HomeOutlined />,
-      label: <Link href="/">Главная</Link>,
+      label: <Link href="/" prefetch={true}>Главная</Link>,
     },
     {
       key: "cart",
@@ -75,12 +75,12 @@ const AppHeader = observer(() => {
           <ShoppingCartOutlined style={{ fontSize: 18 }} />
         </Badge>
       ),
-      label: <Link href="/cart">Корзина</Link>,
+      label: <Link href="/cart" prefetch={true}>Корзина</Link>,
     },
     {
       key: "favorites",
       icon: <HeartOutlined style={{ fontSize: 18 }} />,
-      label: <Link href="/favorites">Избранное</Link>,
+      label: <Link href="/favorites" prefetch={true}>Избранное</Link>,
     },
     ...(session
       ? [
@@ -100,7 +100,7 @@ const AppHeader = observer(() => {
           {
             key: "login",
             icon: <LoginOutlined />,
-            label: <Link href="/auth/login">Войти</Link>,
+            label: <Link href="/auth/login" prefetch={true}>Войти</Link>,
           },
         ]),
     ...(isAdmin
@@ -108,7 +108,7 @@ const AppHeader = observer(() => {
           {
             key: "admin",
             icon: <SettingOutlined />,
-            label: <Link href="/admin/restaurants">Админка</Link>,
+            label: <Link href="/admin/restaurants" prefetch={true}>Админка</Link>,
           },
         ]
       : []),
@@ -127,7 +127,7 @@ const AppHeader = observer(() => {
         zIndex: 1000,
       }}
     >
-      <Link href="/" style={{ color: "white", textDecoration: "none" }}>
+      <Link href="/" prefetch={true} style={{ color: "white", textDecoration: "none" }}>
         <div style={{ fontSize: 20, fontWeight: "bold", color: "white" }}>
           🍔 Food App
         </div>
@@ -149,4 +149,5 @@ const AppHeader = observer(() => {
 });
 
 export default AppHeader;
+
 

@@ -222,7 +222,8 @@ model Category {
   orderIndex  Int       @default(0) @map("order_index")
   isActive    Boolean   @default(true) @map("is_active")
 
-  dishes Dish[]
+  dishes              Dish[]
+  restaurantCategories RestaurantCategory[]
 
   @@map("categories")
 }
@@ -230,12 +231,14 @@ model Category {
 model RestaurantCategory {
   id           Int       @id @default(autoincrement())
   restaurantId Int       @map("restaurant_id")
+  categoryId   Int?      @map("category_id")
   name         String    @db.VarChar(100)
   description  String?   @db.Text
   orderIndex   Int       @default(0) @map("order_index")
   isActive     Boolean   @default(true) @map("is_active")
 
   restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  category    Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   dishes      Dish[]
 
   @@unique([restaurantId, name])

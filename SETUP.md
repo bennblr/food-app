@@ -91,11 +91,10 @@ VALUES ('admin@example.com', '$2a$10$...', 'APP_OWNER', true);
 ### Админ-панель
 - `/admin/restaurants` - Управление ресторанами
 - `/admin/users` - Управление пользователями
+- `/admin/cuisines` - Управление кухнями
+- `/admin/categories` - Управление категориями
 - `/admin/orders` - Все заказы
+- `/admin/restaurant/orders` - Управление заказами ресторана (для админов)
+- `/admin/driver/orders` - Управление заказами водителя (для админов)
 
-### Ресторан
-- `/restaurant/orders` - Заказы ресторана
-
-### Курьер
-- `/driver/orders` - Доступные заказы
 

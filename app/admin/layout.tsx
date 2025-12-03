@@ -7,6 +7,7 @@ import {
   AppstoreOutlined,
   FileTextOutlined,
   LogoutOutlined,
+  CarOutlined,
 } from "@ant-design/icons";
 import { useRouter, usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
@@ -29,27 +30,40 @@ export default function AdminLayout({
     {
       key: "/admin/restaurants",
       icon: <ShopOutlined />,
-      label: <Link href="/admin/restaurants">Рестораны</Link>,
+      label: <Link href="/admin/restaurants" prefetch={true}>Рестораны</Link>,
     },
     {
       key: "/admin/users",
       icon: <UserOutlined />,
-      label: <Link href="/admin/users">Пользователи</Link>,
+      label: <Link href="/admin/users" prefetch={true}>Пользователи</Link>,
     },
     {
       key: "/admin/cuisines",
       icon: <AppstoreOutlined />,
-      label: <Link href="/admin/cuisines">Кухни</Link>,
+      label: <Link href="/admin/cuisines" prefetch={true}>Кухни</Link>,
     },
     {
       key: "/admin/categories",
       icon: <AppstoreOutlined />,
-      label: <Link href="/admin/categories">Категории</Link>,
+      label: <Link href="/admin/categories" prefetch={true}>Категории</Link>,
     },
     {
       key: "/admin/orders",
       icon: <FileTextOutlined />,
-      label: <Link href="/admin/orders">Заказы</Link>,
+      label: <Link href="/admin/orders" prefetch={true}>Заказы</Link>,
+    },
+    {
+      type: "divider" as const,
+    },
+    {
+      key: "/admin/restaurant/orders",
+      icon: <ShopOutlined />,
+      label: <Link href="/admin/restaurant/orders" prefetch={true}>Управление рестораном</Link>,
+    },
+    {
+      key: "/admin/driver/orders",
+      icon: <CarOutlined />,
+      label: <Link href="/admin/driver/orders" prefetch={true}>Управление водителем</Link>,
     },
   ];
 

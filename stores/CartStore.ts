@@ -12,6 +12,11 @@ export interface CartItem {
     name: string;
     price: number;
     imageUrl: string[];
+    weight?: string | null;
+  };
+  restaurant?: {
+    id: number;
+    name: string;
   };
 }
 
@@ -39,6 +44,11 @@ export class CartStore {
   get restaurantId() {
     if (this.items.length === 0) return null;
     return this.items[0].restaurantId;
+  }
+
+  get restaurantName() {
+    if (this.items.length === 0) return null;
+    return this.items[0].restaurant?.name || null;
   }
 
   async fetchCart(force = false) {
@@ -85,16 +95,42 @@ export class CartStore {
       runInAction(() => {
         this.items = data;
       });
-      return true;
+      return { success: true };
     } catch (error: any) {
+      // Если ошибка 409 (Conflict) - в корзине товары из другого ресторана
+      if (error.response?.status === 409) {
+        const existingRestaurant = error.response?.data?.existingRestaurant;
+        return {
+          success: false,
+          conflict: true,
+          existingRestaurant: existingRestaurant || null,
+        };
+      }
       runInAction(() => {
         this.error = error.response?.data?.message || "Ошибка добавления в корзину";
       });
-      return false;
+      return { success: false, conflict: false };
     } finally {
       runInAction(() => {
         this.isLoading = false;
       });
+    }
+  }
+
+  async clearCartAndAddItem(dishId: number, restaurantId: number, quantity: number = 1, notes?: string) {
+    // Сначала очищаем корзину
+    try {
+      await httpService.delete("/api/cart");
+      runInAction(() => {
+        this.items = [];
+      });
+      // Затем добавляем товар
+      return await this.addItem(dishId, restaurantId, quantity, notes);
+    } catch (error: any) {
+      runInAction(() => {
+        this.error = error.response?.data?.message || "Ошибка очистки корзины";
+      });
+      return { success: false, conflict: false };
     }
   }
 

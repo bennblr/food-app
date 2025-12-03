@@ -6,13 +6,21 @@ import { z } from "zod";
 
 const restaurantSchema = z.object({
   name: z.string().min(1).optional(),
-  description: z.string().optional(),
+  description: z.string().nullable().optional(),
+  logoUrl: z.string().nullable().optional().refine(
+    (val) => !val || val === '' || z.string().url().safeParse(val).success,
+    { message: "Неверный формат URL" }
+  ),
+  coverUrl: z.string().nullable().optional().refine(
+    (val) => !val || val === '' || z.string().url().safeParse(val).success,
+    { message: "Неверный формат URL" }
+  ),
   address: z.string().min(1).optional(),
-  phone: z.string().optional(),
-  email: z.string().email().optional(),
+  phone: z.string().nullable().optional(),
+  email: z.string().email().nullable().optional(),
   deliveryFee: z.number().optional(),
-  deliveryTime: z.number().optional(),
-  minOrderAmount: z.number().optional(),
+  deliveryTime: z.number().nullable().optional(),
+  minOrderAmount: z.number().nullable().optional(),
   isActive: z.boolean().optional(),
 });
 
@@ -44,9 +52,28 @@ export async function PUT(
     const body = await request.json();
     const validatedData = restaurantSchema.parse(body);
 
+    // Преобразуем пустые строки в null для URL полей
+    const updateData: any = {};
+    if (validatedData.name !== undefined) updateData.name = validatedData.name;
+    if (validatedData.description !== undefined) updateData.description = validatedData.description;
+    if (validatedData.address !== undefined) updateData.address = validatedData.address;
+    if (validatedData.phone !== undefined) updateData.phone = validatedData.phone;
+    if (validatedData.email !== undefined) updateData.email = validatedData.email;
+    if (validatedData.deliveryFee !== undefined) updateData.deliveryFee = validatedData.deliveryFee;
+    if (validatedData.deliveryTime !== undefined) updateData.deliveryTime = validatedData.deliveryTime;
+    if (validatedData.minOrderAmount !== undefined) updateData.minOrderAmount = validatedData.minOrderAmount;
+    if (validatedData.isActive !== undefined) updateData.isActive = validatedData.isActive;
+    
+    if ('logoUrl' in validatedData) {
+      updateData.logoUrl = validatedData.logoUrl && validatedData.logoUrl.trim() !== '' ? validatedData.logoUrl : null;
+    }
+    if ('coverUrl' in validatedData) {
+      updateData.coverUrl = validatedData.coverUrl && validatedData.coverUrl.trim() !== '' ? validatedData.coverUrl : null;
+    }
+
     const restaurant = await prisma.restaurant.update({
       where: { id: parseInt(params.id) },
-      data: validatedData,
+      data: updateData,
     });
 
     return NextResponse.json(restaurant);
@@ -102,4 +129,5 @@ export async function DELETE(
     );
   }
 }
+
 

@@ -237,14 +237,19 @@ async function main() {
   }
   console.log("✅ Связаны кухни с рестораном");
 
-  // Создаем категории ресторана
+  // Создаем категории ресторана и связываем их с общими категориями
   const restaurantCategories = [
-    { name: "Пицца", orderIndex: 1 },
-    { name: "Суши и роллы", orderIndex: 2 },
-    { name: "Напитки", orderIndex: 3 },
+    { name: "Пицца", orderIndex: 1, globalCategorySlug: "pizza" },
+    { name: "Суши и роллы", orderIndex: 2, globalCategorySlug: "sushi" },
+    { name: "Напитки", orderIndex: 3, globalCategorySlug: "drinks" },
   ];
 
   for (const cat of restaurantCategories) {
+    // Находим общую категорию
+    const globalCategory = await prisma.category.findUnique({
+      where: { slug: cat.globalCategorySlug },
+    });
+
     await prisma.restaurantCategory.upsert({
       where: {
         restaurantId_name: {
@@ -252,15 +257,18 @@ async function main() {
           name: cat.name,
         },
       },
-      update: {},
+      update: {
+        categoryId: globalCategory?.id || null,
+      },
       create: {
         restaurantId: restaurant.id,
         name: cat.name,
         orderIndex: cat.orderIndex,
+        categoryId: globalCategory?.id || null,
       },
     });
   }
-  console.log("✅ Созданы категории ресторана");
+  console.log("✅ Созданы категории ресторана и связаны с общими категориями");
 
   // Создаем блюда
   const pizzaCategory = await prisma.restaurantCategory.findFirst({

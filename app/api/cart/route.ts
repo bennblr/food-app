@@ -31,6 +31,13 @@ export async function GET(request: NextRequest) {
             name: true,
             price: true,
             imageUrl: true,
+            weight: true,
+          },
+        },
+        restaurant: {
+          select: {
+            id: true,
+            name: true,
           },
         },
       },
@@ -39,8 +46,9 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(cartItems);
   } catch (error: any) {
+    const message = error instanceof Error ? error.message : "Ошибка загрузки корзины";
     return NextResponse.json(
-      { message: error.message || "Ошибка загрузки корзины" },
+      { message },
       { status: 500 }
     );
   }
@@ -61,18 +69,33 @@ export async function POST(request: NextRequest) {
     const validatedData = addToCartSchema.parse(body);
 
     // Проверка, что корзина не содержит блюд из другого ресторана
-    const existingCart = await prisma.cartItem.findFirst({
+    const existingCartItem = await prisma.cartItem.findFirst({
       where: {
         userId: parseInt(session.user.id),
         restaurantId: { not: validatedData.restaurantId },
       },
+      include: {
+        restaurant: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
     });
 
-    if (existingCart) {
-      // Очищаем корзину от других ресторанов
-      await prisma.cartItem.deleteMany({
-        where: { userId: parseInt(session.user.id) },
-      });
+    if (existingCartItem) {
+      // Возвращаем ошибку с информацией о ресторане в корзине
+      return NextResponse.json(
+        {
+          message: "В корзине есть товары из другого ресторана",
+          existingRestaurant: {
+            id: existingCartItem.restaurant.id,
+            name: existingCartItem.restaurant.name,
+          },
+        },
+        { status: 409 } // Conflict
+      );
     }
 
     const cartItem = await prisma.cartItem.upsert({
@@ -114,9 +137,17 @@ export async function POST(request: NextRequest) {
             name: true,
             price: true,
             imageUrl: true,
+            weight: true,
+          },
+        },
+        restaurant: {
+          select: {
+            id: true,
+            name: true,
           },
         },
       },
+      orderBy: { createdAt: "desc" },
     });
 
     return NextResponse.json(cartItems);
@@ -134,4 +165,31 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { message: "Необходима авторизация" },
+        { status: 401 }
+      );
+    }
+
+    // Очищаем всю корзину
+    await prisma.cartItem.deleteMany({
+      where: { userId: parseInt(session.user.id) },
+    });
+
+    return NextResponse.json({ message: "Корзина очищена" });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Ошибка очистки корзины";
+    return NextResponse.json(
+      { message },
+      { status: 500 }
+    );
+  }
+}
+
 

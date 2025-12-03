@@ -4,6 +4,7 @@ import { AntdRegistry } from "@ant-design/nextjs-registry";
 import { ConfigProvider } from "antd";
 import ruRU from "antd/locale/ru_RU";
 import { Providers } from "@/components/Providers";
+import { PagePreloader } from "@/components/PagePreloader";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin", "cyrillic"] });
@@ -27,7 +28,10 @@ export default function RootLayout({
       <body className={inter.className}>
         <AntdRegistry>
           <ConfigProvider locale={ruRU}>
-            <Providers>{children}</Providers>
+            <Providers>
+              <PagePreloader />
+              {children}
+            </Providers>
           </ConfigProvider>
         </AntdRegistry>
       </body>

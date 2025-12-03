@@ -40,11 +40,19 @@ export default function AdminRestaurantsPage() {
 
   const handleSubmit = async (values: any) => {
     try {
+      // Преобразуем числовые поля в числа
+      const cleanedValues = {
+        ...values,
+        deliveryFee: values.deliveryFee ? Number(values.deliveryFee) : 0,
+        deliveryTime: values.deliveryTime ? Number(values.deliveryTime) : null,
+        minOrderAmount: values.minOrderAmount ? Number(values.minOrderAmount) : null,
+      };
+
       if (editingRestaurant) {
-        await httpService.put(`/api/admin/restaurants/${editingRestaurant.id}`, values);
+        await httpService.put(`/api/admin/restaurants/${editingRestaurant.id}`, cleanedValues);
         message.success("Ресторан обновлен");
       } else {
-        await httpService.post("/api/admin/restaurants", values);
+        await httpService.post("/api/admin/restaurants", cleanedValues);
         message.success("Ресторан создан");
       }
       setModalVisible(false);
@@ -78,6 +86,24 @@ export default function AdminRestaurantsPage() {
       key: "name",
     },
     {
+      title: "Логотип",
+      key: "logo",
+      width: 100,
+      render: (_: any, record: any) =>
+        record.logoUrl ? (
+          <img
+            src={record.logoUrl}
+            alt={record.name}
+            style={{ width: 50, height: 50, objectFit: "cover", borderRadius: 4 }}
+            onError={(e) => {
+              (e.target as HTMLImageElement).style.display = "none";
+            }}
+          />
+        ) : (
+          <div style={{ width: 50, height: 50, background: "#f0f0f0", borderRadius: 4 }} />
+        ),
+    },
+    {
       title: "Адрес",
       dataIndex: "address",
       key: "address",
@@ -96,7 +122,12 @@ export default function AdminRestaurantsPage() {
             icon={<EditOutlined />}
             onClick={() => {
               setEditingRestaurant(record);
-              form.setFieldsValue(record);
+              form.setFieldsValue({
+                ...record,
+                deliveryFee: record.deliveryFee ? Number(record.deliveryFee) : 0,
+                deliveryTime: record.deliveryTime ? Number(record.deliveryTime) : undefined,
+                minOrderAmount: record.minOrderAmount ? Number(record.minOrderAmount) : undefined,
+              });
               setModalVisible(true);
             }}
           />
@@ -152,6 +183,20 @@ export default function AdminRestaurantsPage() {
           <Form.Item name="description" label="Описание">
             <Input.TextArea />
           </Form.Item>
+          <Form.Item 
+            name="logoUrl" 
+            label="URL логотипа"
+            tooltip="Ссылка на изображение логотипа ресторана"
+          >
+            <Input placeholder="https://example.com/logo.png" />
+          </Form.Item>
+          <Form.Item 
+            name="coverUrl" 
+            label="URL обложки"
+            tooltip="Ссылка на изображение обложки ресторана"
+          >
+            <Input placeholder="https://example.com/cover.jpg" />
+          </Form.Item>
           <Form.Item name="address" label="Адрес" rules={[{ required: true }]}>
             <Input />
           </Form.Item>
@@ -161,11 +206,14 @@ export default function AdminRestaurantsPage() {
           <Form.Item name="email" label="Email">
             <Input type="email" />
           </Form.Item>
-          <Form.Item name="deliveryFee" label="Стоимость доставки">
+          <Form.Item name="deliveryFee" label="Стоимость доставки" initialValue={0}>
             <InputNumber min={0} style={{ width: "100%" }} />
           </Form.Item>
           <Form.Item name="deliveryTime" label="Время доставки (мин)">
             <InputNumber min={1} style={{ width: "100%" }} />
+          </Form.Item>
+          <Form.Item name="minOrderAmount" label="Минимальная сумма заказа">
+            <InputNumber min={0} style={{ width: "100%" }} />
           </Form.Item>
           <Form.Item>
             <Space>

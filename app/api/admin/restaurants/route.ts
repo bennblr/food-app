@@ -6,14 +6,22 @@ import { z } from "zod";
 
 const restaurantSchema = z.object({
   name: z.string().min(1),
-  description: z.string().optional(),
+  description: z.string().nullable().optional(),
+  logoUrl: z.string().nullable().optional().refine(
+    (val) => !val || val === '' || z.string().url().safeParse(val).success,
+    { message: "Неверный формат URL" }
+  ),
+  coverUrl: z.string().nullable().optional().refine(
+    (val) => !val || val === '' || z.string().url().safeParse(val).success,
+    { message: "Неверный формат URL" }
+  ),
   address: z.string().min(1),
-  phone: z.string().optional(),
-  email: z.string().email().optional(),
+  phone: z.string().nullable().optional(),
+  email: z.string().email().nullable().optional(),
   deliveryFee: z.number().default(0),
-  deliveryTime: z.number().optional(),
-  minOrderAmount: z.number().optional(),
-  ownerId: z.number().optional(),
+  deliveryTime: z.number().nullable().optional(),
+  minOrderAmount: z.number().nullable().optional(),
+  ownerId: z.number().nullable().optional(),
 });
 
 export async function GET() {
@@ -85,8 +93,15 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const validatedData = restaurantSchema.parse(body);
 
+    // Преобразуем пустые строки в null для URL полей
+    const createData = {
+      ...validatedData,
+      logoUrl: validatedData.logoUrl && validatedData.logoUrl.trim() !== '' ? validatedData.logoUrl : null,
+      coverUrl: validatedData.coverUrl && validatedData.coverUrl.trim() !== '' ? validatedData.coverUrl : null,
+    };
+
     const restaurant = await prisma.restaurant.create({
-      data: validatedData,
+      data: createData,
     });
 
     return NextResponse.json(restaurant, { status: 201 });
@@ -104,4 +119,5 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
 

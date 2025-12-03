@@ -14,17 +14,18 @@ export default withAuth(
       }
     }
 
-    // Защита роутов ресторана
+    // Защита роутов ресторана (доступны владельцам ресторанов, сотрудникам и админам приложения)
     if (path.startsWith("/restaurant")) {
-      const allowedRoles = ["RESTAURANT_OWNER", "RESTAURANT_EMPLOYEE"];
+      const allowedRoles = ["RESTAURANT_OWNER", "RESTAURANT_EMPLOYEE", "APP_OWNER", "APP_EDITOR"];
       if (!token || !allowedRoles.includes((token as any).role)) {
         return NextResponse.redirect(new URL("/auth/login", req.url));
       }
     }
 
-    // Защита роутов курьера
+    // Защита роутов курьера (доступны водителям и админам приложения)
     if (path.startsWith("/driver")) {
-      if (!token || (token as any).role !== "DRIVER") {
+      const allowedRoles = ["DRIVER", "APP_OWNER", "APP_EDITOR"];
+      if (!token || !allowedRoles.includes((token as any).role)) {
         return NextResponse.redirect(new URL("/auth/login", req.url));
       }
     }
@@ -64,4 +65,5 @@ export const config = {
     "/profile/:path*",
   ],
 };
+
 

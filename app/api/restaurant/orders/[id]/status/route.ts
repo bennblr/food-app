@@ -54,12 +54,17 @@ export async function PUT(
     }
 
     const userId = parseInt(session.user.id);
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+    
+    const isAppAdmin = user && ["APP_OWNER", "APP_EDITOR"].includes(user.role);
     const isOwner = order.restaurant.ownerId === userId;
     const isEmployee = order.restaurant.employees.some(
       (e) => e.userId === userId && e.isActive
     );
 
-    if (!isOwner && !isEmployee) {
+    if (!isAppAdmin && !isOwner && !isEmployee) {
       return NextResponse.json(
         { message: "Нет доступа к этому заказу" },
         { status: 403 }
@@ -96,4 +101,5 @@ export async function PUT(
     );
   }
 }
+
 

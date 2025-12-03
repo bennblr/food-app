@@ -1,26 +1,359 @@
 .layout {
   min-height: 100vh;
+  background: #f5f5f5;
 }
 
-.header {
-  background: #1890ff;
-  padding: 0 24px;
+.restaurantHeader {
+  background: #000;
+  color: #fff;
+  padding: 12px 24px;
   display: flex;
+  justify-content: space-between;
   align-items: center;
 }
 
-.content {
-  padding: 24px;
-  max-width: 1200px;
-  margin: 0 auto;
-  width: 100%;
+.restaurantHeaderLeft {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
-.info {
+.fireIcon {
+  color: #ff4d4f;
+  font-size: 16px;
+}
+
+.showOtherRestaurantsBtn {
+  background: #000;
+  color: #fff;
+  border-color: #fff;
+}
+
+.showOtherRestaurantsBtn:hover {
+  background: #333;
+  border-color: #fff;
+  color: #fff;
+}
+
+.content {
+  padding: 0;
+  max-width: 100%;
+  margin: 0;
+  background: #fff;
+}
+
+.mainRow {
+  min-height: calc(100vh - 64px - 48px);
+}
+
+/* Левая боковая панель - Категории */
+.categoriesSidebar {
+  background: #fff;
+  border-right: 1px solid #e8e8e8;
+  padding: 0;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.categoriesList {
+  padding: 16px 0;
+}
+
+.categoryItem {
+  padding: 12px 24px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-left: 3px solid transparent;
+}
+
+.categoryItem:hover {
+  background: #f5f5f5;
+}
+
+.categoryItemActive {
+  background: #fff7e6;
+  border-left-color: #faad14;
+  font-weight: 500;
+}
+
+/* Центральная область - Меню */
+.menuArea {
+  padding: 24px;
+  background: #fff;
+  overflow-y: auto;
+  max-height: calc(100vh - 64px - 48px);
+}
+
+.restaurantBanner {
+  position: relative;
+  width: 100%;
+  height: 300px;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 24px;
+}
+
+.bannerImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.bannerPlaceholder {
+  width: 100%;
+  height: 100%;
+  background: #f0f0f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logoImage {
+  max-width: 200px;
+  max-height: 200px;
+  object-fit: contain;
+}
+
+.bannerOverlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.7), transparent);
+  padding: 24px;
+  color: #fff;
+}
+
+.bannerInfo {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.restaurantName {
+  color: #fff !important;
+  margin: 0 !important;
+}
+
+.infoButton,
+.favoriteButton {
+  color: #fff !important;
+}
+
+.bannerMeta {
+  display: flex;
+  gap: 24px;
+  color: #fff;
+}
+
+.searchInput {
+  margin-bottom: 24px;
+  border-radius: 8px;
+}
+
+.categoryTitle {
+  margin-bottom: 16px !important;
+}
+
+.dishesGrid {
   margin-top: 16px;
 }
 
-.info > div {
-  margin-bottom: 8px;
+.dishCard {
+  border-radius: 8px;
+  overflow: hidden;
 }
 
+.dishImageContainer {
+  position: relative;
+  width: 100%;
+  height: 180px;
+  overflow: hidden;
+}
+
+.dishImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.dishQuantityBadge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: #ff4d4f;
+  color: #fff;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.dishContent {
+  padding: 12px;
+}
+
+.dishName {
+  margin-bottom: 8px !important;
+  font-size: 16px;
+}
+
+.dishWeight {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 12px;
+}
+
+.dishPrice {
+  margin-bottom: 12px;
+}
+
+.addButton {
+  width: 100%;
+  border-radius: 6px;
+}
+
+.quantityControls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.quantityValue {
+  font-size: 16px;
+  font-weight: 500;
+  min-width: 24px;
+  text-align: center;
+}
+
+/* Правая боковая панель - Корзина */
+.cartSidebar {
+  background: #fff;
+  border-left: 1px solid #e8e8e8;
+  padding: 0;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.cartContainer {
+  padding: 24px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.deliveryInfo {
+  margin-bottom: 16px;
+}
+
+.deliveryProgress {
+  margin-top: 8px;
+}
+
+.cartItems {
+  flex: 1;
+  overflow-y: auto;
+  margin-bottom: 16px;
+}
+
+.cartItem {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.cartItem:last-child {
+  border-bottom: none;
+}
+
+.cartItemImage {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+
+.cartItemInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.cartItemName {
+  font-size: 14px;
+}
+
+.cartItemWeight {
+  font-size: 12px;
+}
+
+.cartItemPrice {
+  margin-top: 4px;
+}
+
+.cartItemControls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.cartQuantityValue {
+  font-size: 14px;
+  font-weight: 500;
+  min-width: 20px;
+  text-align: center;
+}
+
+.cutleryOption {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  background: #f9f9f9;
+  border-radius: 6px;
+  margin-bottom: 16px;
+}
+
+.cutleryIcon {
+  font-size: 24px;
+}
+
+.cutleryControls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cutleryQuantity {
+  font-size: 14px;
+  font-weight: 500;
+  min-width: 20px;
+  text-align: center;
+}
+
+.cutleryPrice {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.cartFooter {
+  margin-top: auto;
+  padding-top: 16px;
+}
+
+.checkoutButton {
+  flex: 1;
+  border-radius: 6px;
+}
