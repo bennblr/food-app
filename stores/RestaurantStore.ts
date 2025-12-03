@@ -52,7 +52,11 @@ export class RestaurantStore {
 
     this.fetchPromise = (async () => {
       try {
+        const { cityStore } = await import("./CityStore");
         const params = new URLSearchParams();
+        if (cityStore.selectedCityId) {
+          params.append("cityId", cityStore.selectedCityId.toString());
+        }
         if (this.filters.cuisineId) {
           params.append("cuisineId", this.filters.cuisineId.toString());
         }

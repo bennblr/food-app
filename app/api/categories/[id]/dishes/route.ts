@@ -9,22 +9,43 @@ export async function GET(
 ) {
   try {
     const categoryId = parseInt(params.id);
+    const searchParams = request.nextUrl.searchParams;
+    const cityId = searchParams.get("cityId");
+    
+    // Базовое условие для блюд
+    const dishWhere: Record<string, unknown> = {
+      isAvailable: true,
+      OR: [
+        // Напрямую через categoryId
+        { categoryId: categoryId },
+        // Через restaurantCategory, которая связана с общей категорией
+        {
+          restaurantCategory: {
+            categoryId: categoryId,
+          },
+        },
+      ],
+    };
+
+    // Если указан город, фильтруем рестораны по городу
+    if (cityId) {
+      dishWhere.restaurant = {
+        isActive: true,
+        cities: {
+          some: {
+            cityId: parseInt(cityId),
+          },
+        },
+      };
+    } else {
+      dishWhere.restaurant = {
+        isActive: true,
+      };
+    }
     
     // Ищем блюда, которые связаны с категорией напрямую или через категорию ресторана
     const dishes = await prisma.dish.findMany({
-      where: {
-        isAvailable: true,
-        OR: [
-          // Напрямую через categoryId
-          { categoryId: categoryId },
-          // Через restaurantCategory, которая связана с общей категорией
-          {
-            restaurantCategory: {
-              categoryId: categoryId,
-            },
-          },
-        ],
-      },
+      where: dishWhere,
       include: {
         restaurant: {
           select: {

@@ -5,7 +5,7 @@ import { Layout, Row, Col, Card, Typography, Spin, Button, Tag } from "antd";
 import { ShoppingCartOutlined, ArrowLeftOutlined } from "@ant-design/icons";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { cartStore, httpService } from "@/stores";
+import { cartStore, httpService, cityStore } from "@/stores";
 import { observer } from "mobx-react-lite";
 import AppHeader from "@/components/Header";
 import styles from "./page.module.css";
@@ -24,6 +24,14 @@ const CategoryPage = observer(() => {
     fetchData();
   }, [params.id]);
 
+  // Реакция на изменение города - обновляем данные
+  useEffect(() => {
+    const unsubscribe = cityStore.onCityChange(() => {
+      fetchData();
+    });
+    return unsubscribe;
+  }, [params.id]);
+
   const fetchData = async () => {
     setLoading(true);
     try {
@@ -32,8 +40,12 @@ const CategoryPage = observer(() => {
       const foundCategory = categories.find((cat) => cat.id === parseInt(params.id as string));
       setCategory(foundCategory);
 
-      // Загружаем блюда категории
-      const dishesData = await httpService.get<any[]>(`/api/categories/${params.id}/dishes`);
+      // Загружаем блюда категории с учетом выбранного города
+      const cityId = cityStore.selectedCityId;
+      const url = cityId 
+        ? `/api/categories/${params.id}/dishes?cityId=${cityId}`
+        : `/api/categories/${params.id}/dishes`;
+      const dishesData = await httpService.get<any[]>(url);
       console.log("Загружено блюд:", dishesData.length);
       setDishes(dishesData);
     } catch (error: any) {

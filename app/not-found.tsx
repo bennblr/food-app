@@ -1,8 +1,12 @@
-import Link from "next/link";
+"use client";
+
+import { useRouter } from "next/navigation";
 
 export const dynamic = 'force-dynamic';
 
 export default function NotFound() {
+  const router = useRouter();
+
   return (
     <div style={{ 
       display: 'flex', 
@@ -18,20 +22,21 @@ export default function NotFound() {
       <p style={{ color: '#666', marginBottom: '24px' }}>
         Запрашиваемая страница не существует
       </p>
-      <Link 
-        href="/"
+      <button
+        onClick={() => router.push("/")}
         style={{
           display: 'inline-block',
           padding: '8px 24px',
           background: '#1890ff',
           color: 'white',
-          textDecoration: 'none',
+          border: 'none',
           borderRadius: '4px',
-          fontWeight: 500
+          fontWeight: 500,
+          cursor: 'pointer'
         }}
       >
         Вернуться на главную
-      </Link>
+      </button>
     </div>
   );
 }

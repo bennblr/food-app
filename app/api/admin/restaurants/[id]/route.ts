@@ -18,6 +18,7 @@ const restaurantSchema = z.object({
   address: z.string().min(1).optional(),
   phone: z.string().nullable().optional(),
   email: z.string().email().nullable().optional(),
+  cityIds: z.array(z.number()).optional(),
   deliveryFee: z.number().optional(),
   deliveryTime: z.number().nullable().optional(),
   minOrderAmount: z.number().nullable().optional(),
@@ -68,17 +69,46 @@ export async function PUT(
     }
 
     // Преобразуем пустые строки в null для URL полей
+    const { cityIds, ...restaurantData } = validatedData;
+    
     const updateData: Record<string, unknown> = {};
-    if (validatedData.name !== undefined) updateData.name = validatedData.name;
-    if (validatedData.description !== undefined) updateData.description = validatedData.description;
-    if (validatedData.address !== undefined) updateData.address = validatedData.address;
-    if (validatedData.phone !== undefined) updateData.phone = validatedData.phone;
-    if (validatedData.email !== undefined) updateData.email = validatedData.email;
-    if (validatedData.deliveryFee !== undefined) updateData.deliveryFee = validatedData.deliveryFee;
-    if (validatedData.deliveryTime !== undefined) updateData.deliveryTime = validatedData.deliveryTime;
-    if (validatedData.minOrderAmount !== undefined) updateData.minOrderAmount = validatedData.minOrderAmount;
-    if (validatedData.isActive !== undefined) updateData.isActive = validatedData.isActive;
-    if (validatedData.ownerId !== undefined) updateData.ownerId = validatedData.ownerId;
+    if (restaurantData.name !== undefined) updateData.name = restaurantData.name;
+    if (restaurantData.description !== undefined) updateData.description = restaurantData.description;
+    if (restaurantData.address !== undefined) updateData.address = restaurantData.address;
+    if (restaurantData.phone !== undefined) updateData.phone = restaurantData.phone;
+    if (restaurantData.email !== undefined) updateData.email = restaurantData.email;
+    if (restaurantData.deliveryFee !== undefined) updateData.deliveryFee = restaurantData.deliveryFee;
+    if (restaurantData.deliveryTime !== undefined) updateData.deliveryTime = restaurantData.deliveryTime;
+    if (restaurantData.minOrderAmount !== undefined) updateData.minOrderAmount = restaurantData.minOrderAmount;
+    if (restaurantData.isActive !== undefined) updateData.isActive = restaurantData.isActive;
+    if (restaurantData.ownerId !== undefined) updateData.ownerId = restaurantData.ownerId;
+    
+    // Обновляем города, если они указаны
+    if (cityIds !== undefined) {
+      // Проверяем, что все указанные города существуют
+      if (cityIds.length > 0) {
+        const cities = await prisma.city.findMany({
+          where: { id: { in: cityIds } },
+        });
+        if (cities.length !== cityIds.length) {
+          return NextResponse.json(
+            { message: "Один или несколько городов не найдены" },
+            { status: 400 }
+          );
+        }
+      }
+      
+      // Удаляем все существующие связи и создаем новые
+      await prisma.restaurantCity.deleteMany({
+        where: { restaurantId: parseInt(params.id) },
+      });
+      
+      updateData.cities = {
+        create: cityIds.map((cityId: number) => ({
+          cityId,
+        })),
+      };
+    }
     
     if ('logoUrl' in validatedData) {
       updateData.logoUrl = validatedData.logoUrl && validatedData.logoUrl.trim() !== '' ? validatedData.logoUrl : null;
@@ -90,6 +120,13 @@ export async function PUT(
     const restaurant = await prisma.restaurant.update({
       where: { id: parseInt(params.id) },
       data: updateData,
+      include: {
+        cities: {
+          include: {
+            city: true,
+          },
+        },
+      },
     });
 
     return NextResponse.json(restaurant);

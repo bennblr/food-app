@@ -48,6 +48,11 @@ export default function AdminLayout({
       label: <Link href="/admin/categories" prefetch={true}>Категории</Link>,
     },
     {
+      key: "/admin/cities",
+      icon: <AppstoreOutlined />,
+      label: <Link href="/admin/cities" prefetch={true}>Города</Link>,
+    },
+    {
       key: "/admin/orders",
       icon: <FileTextOutlined />,
       label: <Link href="/admin/orders" prefetch={true}>Заказы</Link>,

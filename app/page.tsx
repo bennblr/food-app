@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Layout, Row, Col, Card, Typography, Spin, Input, Button } from "antd";
 import { SearchOutlined, FireOutlined, AppstoreOutlined } from "@ant-design/icons";
-import { restaurantStore, httpService } from "@/stores";
+import { restaurantStore, httpService, cityStore } from "@/stores";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -28,6 +28,15 @@ const HomePage = observer(() => {
       setInitialized(true);
     }
   }, [initialized]);
+
+  // Реакция на изменение города - обновляем данные
+  useEffect(() => {
+    const unsubscribe = cityStore.onCityChange(() => {
+      restaurantStore.fetchRestaurants(true);
+      fetchCategories();
+    });
+    return unsubscribe;
+  }, []);
 
   const fetchCategories = async () => {
     setCategoriesLoading(true);

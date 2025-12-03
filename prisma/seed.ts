@@ -97,6 +97,43 @@ async function main() {
   });
   console.log("✅ Создан профиль курьера");
 
+  // Создаем города
+  const moscow = await prisma.city.upsert({
+    where: { slug: "moscow" },
+    update: {},
+    create: {
+      name: "Москва",
+      slug: "moscow",
+      isActive: true,
+      orderIndex: 1,
+    },
+  });
+  console.log("✅ Создан город:", moscow.name);
+
+  const spb = await prisma.city.upsert({
+    where: { slug: "spb" },
+    update: {},
+    create: {
+      name: "Санкт-Петербург",
+      slug: "spb",
+      isActive: true,
+      orderIndex: 2,
+    },
+  });
+  console.log("✅ Создан город:", spb.name);
+
+  const kazan = await prisma.city.upsert({
+    where: { slug: "kazan" },
+    update: {},
+    create: {
+      name: "Казань",
+      slug: "kazan",
+      isActive: true,
+      orderIndex: 3,
+    },
+  });
+  console.log("✅ Создан город:", kazan.name);
+
   // Создаем клиента
   const client = await prisma.user.upsert({
     where: { email: "client@example.com" },
@@ -193,6 +230,35 @@ async function main() {
     },
   });
   console.log("✅ Создан ресторан:", restaurant.name);
+
+  // Связываем ресторан с городами
+  await prisma.restaurantCity.upsert({
+    where: {
+      restaurantId_cityId: {
+        restaurantId: restaurant.id,
+        cityId: moscow.id,
+      },
+    },
+    update: {},
+    create: {
+      restaurantId: restaurant.id,
+      cityId: moscow.id,
+    },
+  });
+  await prisma.restaurantCity.upsert({
+    where: {
+      restaurantId_cityId: {
+        restaurantId: restaurant.id,
+        cityId: spb.id,
+      },
+    },
+    update: {},
+    create: {
+      restaurantId: restaurant.id,
+      cityId: spb.id,
+    },
+  });
+  console.log("✅ Ресторан связан с городами");
 
   // Связываем ресторан с кухнями
   const italianCuisine = await prisma.cuisine.findUnique({ where: { slug: "italian" } });

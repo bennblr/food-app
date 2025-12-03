@@ -12,6 +12,7 @@ import {
   message,
   Popconfirm,
   Select,
+  Tag,
 } from "antd";
 import { PlusOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import { httpService } from "@/stores";
@@ -23,10 +24,12 @@ export default function AdminRestaurantsPage() {
   const [editingRestaurant, setEditingRestaurant] = useState<any>(null);
   const [form] = Form.useForm();
   const [restaurantOwners, setRestaurantOwners] = useState<Array<{ id: number; name: string; email: string }>>([]);
+  const [cities, setCities] = useState<Array<{ id: number; name: string }>>([]);
 
   useEffect(() => {
     fetchRestaurants();
     fetchRestaurantOwners();
+    fetchCities();
   }, []);
 
   const fetchRestaurantOwners = async () => {
@@ -39,10 +42,19 @@ export default function AdminRestaurantsPage() {
     }
   };
 
+  const fetchCities = async () => {
+    try {
+      const data = await httpService.get<Array<{ id: number; name: string; isActive: boolean }>>("/api/admin/cities");
+      setCities(data.filter(c => c.isActive));
+    } catch (error) {
+      message.error("Ошибка загрузки городов");
+    }
+  };
+
   const fetchRestaurants = async () => {
     setLoading(true);
     try {
-      const data = await httpService.get<any[]>("/api/restaurants");
+      const data = await httpService.get<any[]>("/api/admin/restaurants");
       setRestaurants(data);
     } catch (error) {
       message.error("Ошибка загрузки ресторанов");
@@ -60,6 +72,7 @@ export default function AdminRestaurantsPage() {
         deliveryTime: values.deliveryTime ? Number(values.deliveryTime) : null,
         minOrderAmount: values.minOrderAmount ? Number(values.minOrderAmount) : null,
         ownerId: values.ownerId ? Number(values.ownerId) : undefined,
+        cityIds: values.cityIds ? values.cityIds.map((id: number) => Number(id)) : [],
       };
 
       if (editingRestaurant) {
@@ -134,6 +147,20 @@ export default function AdminRestaurantsPage() {
         record.owner ? `${record.owner.name || record.owner.email}` : "Не указан",
     },
     {
+      title: "Города",
+      key: "cities",
+      render: (_: any, record: any) => 
+        record.cities && record.cities.length > 0 ? (
+          <Space size={[0, 8]} wrap>
+            {record.cities.map((rc: { city: { id: number; name: string } }) => (
+              <Tag key={rc.city.id}>{rc.city.name}</Tag>
+            ))}
+          </Space>
+        ) : (
+          <span style={{ color: "#999" }}>Не указаны</span>
+        ),
+    },
+    {
       title: "Действия",
       key: "actions",
       render: (_: any, record: any) => (
@@ -148,6 +175,7 @@ export default function AdminRestaurantsPage() {
                 deliveryTime: record.deliveryTime ? Number(record.deliveryTime) : undefined,
                 minOrderAmount: record.minOrderAmount ? Number(record.minOrderAmount) : undefined,
                 ownerId: record.ownerId || record.owner?.id,
+                cityIds: record.cities?.map((rc: { city: { id: number } }) => rc.city.id) || [],
               });
               setModalVisible(true);
             }}
@@ -220,6 +248,22 @@ export default function AdminRestaurantsPage() {
           </Form.Item>
           <Form.Item name="address" label="Адрес" rules={[{ required: true }]}>
             <Input />
+          </Form.Item>
+          <Form.Item 
+            name="cityIds" 
+            label="Города работы" 
+            rules={[{ required: true, message: "Укажите хотя бы один город" }]}
+            tooltip="Выберите города, в которых работает ресторан"
+          >
+            <Select
+              mode="multiple"
+              placeholder="Выберите города"
+              style={{ width: "100%" }}
+              options={cities.map(city => ({
+                value: city.id,
+                label: city.name,
+              }))}
+            />
           </Form.Item>
           <Form.Item name="phone" label="Телефон">
             <Input />

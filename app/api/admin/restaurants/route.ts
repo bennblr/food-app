@@ -18,6 +18,7 @@ const restaurantSchema = z.object({
   address: z.string().min(1),
   phone: z.string().nullable().optional(),
   email: z.string().email().nullable().optional(),
+  cityIds: z.array(z.number()).min(1, { message: "Необходимо указать хотя бы один город" }),
   deliveryFee: z.number().default(0),
   deliveryTime: z.number().nullable().optional(),
   minOrderAmount: z.number().nullable().optional(),
@@ -107,14 +108,41 @@ export async function POST(request: NextRequest) {
     }
 
     // Преобразуем пустые строки в null для URL полей
+    const { cityIds, ...restaurantData } = validatedData;
+
+    // Проверяем, что все указанные города существуют
+    if (cityIds && cityIds.length > 0) {
+      const cities = await prisma.city.findMany({
+        where: { id: { in: cityIds } },
+      });
+      if (cities.length !== cityIds.length) {
+        return NextResponse.json(
+          { message: "Один или несколько городов не найдены" },
+          { status: 400 }
+        );
+      }
+    }
+
     const createData = {
-      ...validatedData,
+      ...restaurantData,
       logoUrl: validatedData.logoUrl && validatedData.logoUrl.trim() !== '' ? validatedData.logoUrl : null,
       coverUrl: validatedData.coverUrl && validatedData.coverUrl.trim() !== '' ? validatedData.coverUrl : null,
+      cities: cityIds ? {
+        create: cityIds.map((cityId: number) => ({
+          cityId,
+        })),
+      } : undefined,
     };
 
     const restaurant = await prisma.restaurant.create({
       data: createData,
+      include: {
+        cities: {
+          include: {
+            city: true,
+          },
+        },
+      },
     });
 
     return NextResponse.json(restaurant, { status: 201 });

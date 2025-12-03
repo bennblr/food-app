@@ -7,10 +7,20 @@ export async function GET(request: NextRequest) {
     const cuisineId = searchParams.get("cuisineId");
     const minRating = searchParams.get("minRating");
     const search = searchParams.get("search");
+    const cityId = searchParams.get("cityId");
 
-    const where: any = {
+    const where: Record<string, unknown> = {
       isActive: true,
     };
+
+    // Фильтрация по городу
+    if (cityId) {
+      where.cities = {
+        some: {
+          cityId: parseInt(cityId),
+        },
+      };
+    }
 
     if (cuisineId) {
       where.cuisines = {
@@ -41,6 +51,11 @@ export async function GET(request: NextRequest) {
             cuisine: true,
           },
         },
+        cities: {
+          include: {
+            city: true,
+          },
+        },
       },
       orderBy: {
         rating: "desc",
@@ -48,9 +63,10 @@ export async function GET(request: NextRequest) {
     });
 
     return NextResponse.json(restaurants);
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Ошибка загрузки ресторанов";
     return NextResponse.json(
-      { message: error.message || "Ошибка загрузки ресторанов" },
+      { message },
       { status: 500 }
     );
   }
