@@ -17,6 +17,7 @@ import Link from "next/link";
 import { cartStore, cityStore } from "@/stores";
 import { observer } from "mobx-react-lite";
 import { useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 
 const { Header: AntHeader } = Layout;
 
@@ -24,13 +25,16 @@ const AppHeader = observer(() => {
   const { data: session, status } = useSession();
   const router = useRouter();
   const pathname = usePathname();
+  const queryClient = useQueryClient();
   const [cityModalVisible, setCityModalVisible] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     if (session) {
       cartStore.fetchCart();
     }
-    // Загружаем города при монтировании компонента
+    // Загружаем города при монтировании компонента (HttpService использует React Query для кэширования)
     cityStore.fetchCities();
     // Если город не выбран, показываем модальное окно
     if (!cityStore.hasCity && cityStore.cities.length > 0) {
@@ -143,23 +147,18 @@ const AppHeader = observer(() => {
         </Link>
         <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
           <Select
-            value={cityStore.selectedCityId}
-            onChange={async (cityId) => {
+            value={mounted ? (cityStore.selectedCityId || undefined) : undefined}
+            onChange={(cityId) => {
               // Очищаем корзину при смене города, так как ресторан может не работать в новом городе
               cartStore.clearCart();
               cityStore.setCity(cityId);
-              // Обновляем данные на текущей странице
-              const { restaurantStore } = await import("@/stores");
-              await restaurantStore.fetchRestaurants(true);
-              // Если мы на главной странице, обновляем категории тоже
-              if (pathname === "/") {
-                router.refresh();
-              }
+              // Инвалидируем кэш React Query для обновления данных
+              queryClient.invalidateQueries();
             }}
             placeholder="Выберите город"
             style={{ width: 150 }}
             suffixIcon={<EnvironmentOutlined style={{ color: "white" }} />}
-            dropdownStyle={{ color: "#000" }}
+            styles={{ popup: { root: { color: "#000" } } }}
             onClick={() => {
               if (cityStore.cities.length === 0) {
                 cityStore.fetchCities();
@@ -169,6 +168,7 @@ const AppHeader = observer(() => {
               value: city.id,
               label: city.name,
             }))}
+            suppressHydrationWarning
           />
           <Menu
             theme="dark"
@@ -194,15 +194,13 @@ const AppHeader = observer(() => {
         <Select
           placeholder="Выберите город для поиска ресторанов"
           style={{ width: "100%" }}
-          onChange={async (cityId) => {
+          onChange={(cityId) => {
             // Очищаем корзину при смене города
             cartStore.clearCart();
             cityStore.setCity(cityId);
             setCityModalVisible(false);
-            // Обновляем данные на текущей странице
-            const { restaurantStore } = await import("@/stores");
-            await restaurantStore.fetchRestaurants(true);
-            router.refresh();
+            // Инвалидируем кэш React Query для обновления данных
+            queryClient.invalidateQueries();
           }}
           options={cityStore.cities.map(city => ({
             value: city.id,

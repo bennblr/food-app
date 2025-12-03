@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Layout, Row, Col, Card, Typography, Spin, Input, Button } from "antd";
 import { SearchOutlined, FireOutlined, AppstoreOutlined } from "@ant-design/icons";
-import { restaurantStore, httpService, cityStore } from "@/stores";
+import { restaurantStore, cityStore, httpService } from "@/stores";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -41,6 +41,7 @@ const HomePage = observer(() => {
   const fetchCategories = async () => {
     setCategoriesLoading(true);
     try {
+      // HttpService теперь использует React Query для кэширования
       const data = await httpService.get<any[]>("/api/categories");
       setCategories(data);
     } catch (error) {
@@ -52,7 +53,7 @@ const HomePage = observer(() => {
 
   const handleSearch = () => {
     restaurantStore.setFilters({ search });
-    restaurantStore.fetchRestaurants();
+    restaurantStore.fetchRestaurants(true);
   };
 
   return (

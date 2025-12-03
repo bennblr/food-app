@@ -78,6 +78,7 @@ class CityStore {
     this.error = null;
     try {
       const { httpService } = await import("./HttpService");
+      // HttpService теперь использует React Query для кэширования
       const data = await httpService.get<City[]>("/api/cities");
       this.cities = data;
     } catch (error: unknown) {

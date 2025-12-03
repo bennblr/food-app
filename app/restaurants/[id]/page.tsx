@@ -63,6 +63,7 @@ const RestaurantPage = observer(() => {
   useEffect(() => {
     const fetchData = async () => {
       await restaurantStore.fetchRestaurant(Number(params.id));
+      // HttpService теперь использует React Query для кэширования
       const data = await httpService.get<typeof menu>(`/api/restaurants/${params.id}/menu`);
       setMenu(data);
       setLoading(false);
@@ -123,14 +124,26 @@ const RestaurantPage = observer(() => {
 
   const categories = Array.from(
     new Map(
-      menu
+      (menu as Array<{
+        restaurantCategory?: { id: number; name: string; orderIndex: number } | null;
+      }>)
         .map((dish) => dish.restaurantCategory)
         .filter((cat): cat is NonNullable<typeof cat> => cat !== null)
         .map((cat) => [cat.id, cat])
     ).values()
   ).sort((a, b) => a.orderIndex - b.orderIndex);
 
-  const filteredMenu = menu.filter((dish) => {
+  const filteredMenu = (menu as Array<{
+    id: number;
+    name: string;
+    description?: string;
+    price: number;
+    discountPrice?: number;
+    weight?: string;
+    imageUrl?: string[];
+    restaurantCategory?: { id: number; name: string; orderIndex: number } | null;
+    isAvailable: boolean;
+  }>).filter((dish) => {
     const matchesCategory = !selectedCategoryId || dish.restaurantCategory?.id === selectedCategoryId;
     const matchesSearch = !searchQuery || 
       dish.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -140,11 +153,11 @@ const RestaurantPage = observer(() => {
 
   const currentCategory = categories.find((cat) => cat.id === selectedCategoryId);
 
-  if (loading || !restaurantStore.currentRestaurant) {
-    return <Spin size="large" style={{ display: "block", margin: "50px auto" }} />;
-  }
+      if (loading || !restaurantStore.currentRestaurant) {
+        return <Spin size="large" style={{ display: "block", margin: "50px auto" }} />;
+      }
 
-  const restaurant = restaurantStore.currentRestaurant;
+      const restaurant = restaurantStore.currentRestaurant;
   const cartItems = cartStore.items.filter((item) => item.restaurantId === Number(params.id));
   const cartTotal = cartItems.reduce((sum, item) => sum + (item.dish?.price || 0) * item.quantity, 0);
   const minOrderAmount = restaurant.minOrderAmount ? Number(restaurant.minOrderAmount) : 0;

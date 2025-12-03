@@ -5,6 +5,13 @@ import { Result, Button } from "antd";
 import { useRouter } from "next/navigation";
 
 export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+export const dynamicParams = true;
+
+// Предотвращаем статическую генерацию
+export function generateStaticParams() {
+  return [];
+}
 
 export default function Error({
   error,

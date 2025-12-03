@@ -20,6 +20,8 @@ const nextConfig = {
     },
     // Оптимизация импортов для Ant Design и других библиотек
     optimizePackageImports: ['antd', '@ant-design/icons', 'mobx', 'mobx-react-lite'],
+    missingSuspenseWithCSRBailout: false,
+    disableStaticResults: true,
   },
   // Настройка webpack для создания единого общего бандла (SPA режим)
   webpack: (config, { isServer, dev }) => {

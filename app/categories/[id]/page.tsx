@@ -5,7 +5,7 @@ import { Layout, Row, Col, Card, Typography, Spin, Button, Tag } from "antd";
 import { ShoppingCartOutlined, ArrowLeftOutlined } from "@ant-design/icons";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { cartStore, httpService, cityStore } from "@/stores";
+import { cartStore, cityStore, httpService } from "@/stores";
 import { observer } from "mobx-react-lite";
 import AppHeader from "@/components/Header";
 import styles from "./page.module.css";
@@ -35,7 +35,7 @@ const CategoryPage = observer(() => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      // Загружаем категорию
+      // Загружаем категорию (HttpService использует React Query для кэширования)
       const categories = await httpService.get<any[]>("/api/categories");
       const foundCategory = categories.find((cat) => cat.id === parseInt(params.id as string));
       setCategory(foundCategory);
